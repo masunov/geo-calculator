@@ -8,7 +8,7 @@ services:
     expose:
       - ${APP_PORT}
     ports:
-      - "${APP_PORT}:8080"
+      - "${APP_PORT}:${APP_PORT}"
     environment:
       APP_PORT: ${APP_PORT}
       APP_NAME: ${APP_NAME}
