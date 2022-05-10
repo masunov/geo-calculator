@@ -1,0 +1,16 @@
+version: "3.3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    expose:
+      - ${APP_PORT}
+    ports:
+      - "${APP_PORT}:8080"
+    environment:
+      APP_PORT: ${APP_PORT}
+      APP_NAME: ${APP_NAME}
+      APP_VERSION: ${APP_VERSION}
+      APP_DEPLOY_FLAG: ${APP_DEPLOY_FLAG}

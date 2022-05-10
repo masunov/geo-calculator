@@ -15,6 +15,14 @@ type SuccessResponse struct {
 	Data    map[string]string `json:"data"`
 }
 
+type StatusResponse struct {
+	Version       string `json:"version"`
+	DeployFlag    string `json:"deploy_flag"`
+	Polygon       string `json:"polygon"`
+	Uptime        string `json:"uptime"`
+	LastUpdatedAt string `json:"last_updated_at"`
+}
+
 func returnErrorResponse(errorMessage string, w http.ResponseWriter, httpCode int) {
 	e := &ErrorResponse{
 		false,

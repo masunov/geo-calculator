@@ -6,12 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 )
-
-var StartTime = time.Now().Format("2006-01-02 15:04:05")
-var GeoJsonPolygon = ""
-var LastUpdatedAt = ""
 
 func main() {
 	err := godotenv.Load(".env")

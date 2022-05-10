@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-type StatusResponse struct {
-	Version       string `json:"version"`
-	DeployFlag    string `json:"deploy_flag"`
-	Polygon       string `json:"polygon"`
-	Uptime        string `json:"uptime"`
-	LastUpdatedAt string `json:"last_updated_at"`
-}
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	returnSuccessResponse(m, w)
@@ -59,6 +51,9 @@ func loadPolygonHandler(w http.ResponseWriter, r *http.Request) {
 		LastUpdatedAt = time.Now().Format("2006-01-02 15:04:05")
 	}
 
+	m := make(map[string]string)
+	returnSuccessResponse(m, w)
+
 	return
 }
 
@@ -84,7 +79,6 @@ func checkPointHandler(w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["point_status"] = "out of polygon"
 
-	// Pass in the feature collection + a point of Long/Lat
 	if isPointInsidePolygon(featureCollection, orb.Point{lon, lat}) {
 		m["point_status"] = "inside polygon"
 	}
