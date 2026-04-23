@@ -6,34 +6,33 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/paulmach/orb/geojson"
+
+	"GeoCalc/internal/handlers"
+	"GeoCalc/internal/state"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Some error occured. Err: %s", err)
-		return
 	}
 
 	loadPolygonFromURL(os.Getenv("POLYGON_SOURCE_URL"))
 
 	r := mux.NewRouter()
-
 	r.Use(commonMiddleware)
 
-	r.HandleFunc("/", indexHandler).Methods(http.MethodGet)
-	r.HandleFunc("/status", statusHandler).Methods(http.MethodGet)
-	r.HandleFunc("/load-polygon", loadPolygonHandler).Methods(http.MethodPost)
-	r.HandleFunc("/show-polygon", showPolygonHandler).Methods(http.MethodGet)
-	r.HandleFunc("/check-point", checkPointHandler).Methods(http.MethodGet)
-	err = http.ListenAndServe(":"+os.Getenv("APP_PORT"), r)
-	if err != nil {
-		return
+	r.HandleFunc("/", handlers.Index).Methods(http.MethodGet)
+	r.HandleFunc("/status", handlers.Status).Methods(http.MethodGet)
+	r.HandleFunc("/load-polygon", handlers.LoadPolygon).Methods(http.MethodPost)
+	r.HandleFunc("/show-polygon", handlers.ShowPolygon).Methods(http.MethodGet)
+	r.HandleFunc("/check-point", handlers.CheckPoint).Methods(http.MethodGet)
+
+	if err := http.ListenAndServe(":"+os.Getenv("APP_PORT"), r); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -60,11 +59,7 @@ func loadPolygonFromURL(url string) {
 		return
 	}
 
-	mu.Lock()
-	GeoJsonPolygon = string(body)
-	LastUpdatedAt = time.Now().Format("2006-01-02 15:04:05")
-	mu.Unlock()
-
+	state.SetPolygon(string(body))
 	log.Printf("Polygon loaded from %s", url)
 }
 

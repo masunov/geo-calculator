@@ -1,4 +1,4 @@
-package main
+package geo
 
 import (
 	"github.com/paulmach/orb"
@@ -6,7 +6,7 @@ import (
 	"github.com/paulmach/orb/planar"
 )
 
-func isPointInsidePolygon(fc *geojson.FeatureCollection, point orb.Point) bool {
+func IsPointInsidePolygon(fc *geojson.FeatureCollection, point orb.Point) bool {
 	for _, feature := range fc.Features {
 		multiPoly, isMulti := feature.Geometry.(orb.MultiPolygon)
 		if isMulti {

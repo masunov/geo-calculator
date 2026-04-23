@@ -8,7 +8,7 @@ if [ "$TARGET" != "blue" ] && [ "$TARGET" != "green" ]; then
     exit 1
 fi
 
-perl -i -pe "s/server app_(blue|green):8080;/server app_$TARGET:8080;/" nginx/nginx.conf
+perl -i -pe "s/server app_(blue|green):8080;/server app_$TARGET:8080;/" deploy/nginx/nginx.conf
 docker compose exec nginx nginx -s reload
 
 echo "Switched to: $TARGET"

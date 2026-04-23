@@ -1,4 +1,4 @@
-package main
+package response
 
 import (
 	"encoding/json"
@@ -23,27 +23,15 @@ type StatusResponse struct {
 	LastUpdatedAt string `json:"last_updated_at"`
 }
 
-func returnErrorResponse(errorMessage string, w http.ResponseWriter, httpCode int) {
-	e := &ErrorResponse{
-		false,
-		errorMessage,
-	}
+func Error(message string, w http.ResponseWriter, httpCode int) {
+	e := &ErrorResponse{false, message}
 	jsonError, _ := json.Marshal(e)
 	w.WriteHeader(httpCode)
-	_, err := w.Write(jsonError)
-	if err != nil {
-		return
-	}
+	w.Write(jsonError)
 }
 
-func returnSuccessResponse(payload map[string]interface{}, w http.ResponseWriter) {
-	response := &SuccessResponse{
-		Success: true,
-		Data:    payload,
-	}
-	res, _ := json.Marshal(response)
-	_, err := w.Write(res)
-	if err != nil {
-		return
-	}
+func Success(payload map[string]interface{}, w http.ResponseWriter) {
+	r := &SuccessResponse{Success: true, Data: payload}
+	res, _ := json.Marshal(r)
+	w.Write(res)
 }
