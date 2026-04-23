@@ -1,5 +1,5 @@
 # builder image
-FROM golang:1.17 as builder
+FROM golang:1.26 as builder
 RUN mkdir /build
 ADD *.go /build/
 ADD go.mod /build/
