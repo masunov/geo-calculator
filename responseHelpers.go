@@ -11,8 +11,8 @@ type ErrorResponse struct {
 }
 
 type SuccessResponse struct {
-	Success bool              `json:"success"`
-	Data    map[string]string `json:"data"`
+	Success bool                   `json:"success"`
+	Data    map[string]interface{} `json:"data"`
 }
 
 type StatusResponse struct {
@@ -36,7 +36,7 @@ func returnErrorResponse(errorMessage string, w http.ResponseWriter, httpCode in
 	}
 }
 
-func returnSuccessResponse(payload map[string]string, w http.ResponseWriter) {
+func returnSuccessResponse(payload map[string]interface{}, w http.ResponseWriter) {
 	response := &SuccessResponse{
 		Success: true,
 		Data:    payload,

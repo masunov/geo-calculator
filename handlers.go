@@ -12,16 +12,20 @@ import (
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	m := make(map[string]string)
+	m := make(map[string]interface{})
 	returnSuccessResponse(m, w)
 	return
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 
-	polygonStatus := "not exists"
+	mu.RLock()
+	polygon := GeoJsonPolygon
+	lastUpdated := LastUpdatedAt
+	mu.RUnlock()
 
-	if len(strings.TrimSpace(GeoJsonPolygon)) != 0 {
+	polygonStatus := "not exists"
+	if len(strings.TrimSpace(polygon)) != 0 {
 		polygonStatus = "exists"
 	}
 
@@ -30,7 +34,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 		DeployFlag:    os.Getenv("APP_DEPLOY_FLAG"),
 		Polygon:       polygonStatus,
 		Uptime:        StartTime,
-		LastUpdatedAt: LastUpdatedAt,
+		LastUpdatedAt: lastUpdated,
 	}
 
 	res, _ := json.Marshal(response)
@@ -45,38 +49,74 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 func loadPolygonHandler(w http.ResponseWriter, r *http.Request) {
 
-	GeoJsonPolygon = r.FormValue("polygon")
+	polygon := r.FormValue("polygon")
 
-	if len(strings.TrimSpace(GeoJsonPolygon)) != 0 {
-		LastUpdatedAt = time.Now().Format("2006-01-02 15:04:05")
+	if len(strings.TrimSpace(polygon)) == 0 {
+		returnErrorResponse("Polygon is required", w, http.StatusBadRequest)
+		return
 	}
 
-	m := make(map[string]string)
+	if _, err := geojson.UnmarshalFeatureCollection([]byte(polygon)); err != nil {
+		returnErrorResponse("Invalid GeoJSON", w, http.StatusBadRequest)
+		return
+	}
+
+	mu.Lock()
+	GeoJsonPolygon = polygon
+	LastUpdatedAt = time.Now().Format("2006-01-02 15:04:05")
+	mu.Unlock()
+
+	m := make(map[string]interface{})
 	returnSuccessResponse(m, w)
 
 	return
 }
 
 func showPolygonHandler(w http.ResponseWriter, r *http.Request) {
-	m := make(map[string]string)
-	m["polygon"] = GeoJsonPolygon
+	mu.RLock()
+	polygon := GeoJsonPolygon
+	mu.RUnlock()
+
+	m := make(map[string]interface{})
+	if len(strings.TrimSpace(polygon)) == 0 {
+		m["polygon"] = nil
+	} else {
+		m["polygon"] = polygon
+	}
 	returnSuccessResponse(m, w)
 	return
 }
 
 func checkPointHandler(w http.ResponseWriter, r *http.Request) {
 
-	if len(strings.TrimSpace(GeoJsonPolygon)) == 0 {
+	mu.RLock()
+	polygon := GeoJsonPolygon
+	mu.RUnlock()
+
+	if len(strings.TrimSpace(polygon)) == 0 {
 		returnErrorResponse("Polygon not found", w, http.StatusBadRequest)
 		return
 	}
 
-	featureCollection, _ := geojson.UnmarshalFeatureCollection([]byte(GeoJsonPolygon))
+	featureCollection, err := geojson.UnmarshalFeatureCollection([]byte(polygon))
+	if err != nil {
+		returnErrorResponse("Invalid polygon GeoJSON", w, http.StatusInternalServerError)
+		return
+	}
 
-	lat, _ := strconv.ParseFloat(r.FormValue("lat"), 64)
-	lon, _ := strconv.ParseFloat(r.FormValue("lon"), 64)
+	lat, err := strconv.ParseFloat(r.FormValue("lat"), 64)
+	if err != nil {
+		returnErrorResponse("Invalid lat value", w, http.StatusBadRequest)
+		return
+	}
 
-	m := make(map[string]string)
+	lon, err := strconv.ParseFloat(r.FormValue("lon"), 64)
+	if err != nil {
+		returnErrorResponse("Invalid lon value", w, http.StatusBadRequest)
+		return
+	}
+
+	m := make(map[string]interface{})
 	m["point_status"] = "out of polygon"
 
 	if isPointInsidePolygon(featureCollection, orb.Point{lon, lat}) {
